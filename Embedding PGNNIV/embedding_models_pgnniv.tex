@@ -1,0 +1,301 @@
+% =============================================================================
+% File:     embedding_models_pgnniv.tex
+% Purpose:  Visual schematic of the different embeddings of PGNNIV
+% Author:   Rubén Muñoz-Sierra (739163@unizar.es; rmunnoz@iisaragon.es)
+% =============================================================================
+
+\documentclass[border=3pt,tikz]{standalone}
+
+% =============================================================================
+% PREAMBLE
+% =============================================================================
+
+% -----------------------------
+% PACKAGES
+% -----------------------------
+\usepackage{amsmath}
+\usepackage{listofitems}
+\usepackage[outline]{contour}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{tikz-3dplot}
+
+% -----------------------------
+% TIKZ LIBRARIES
+% -----------------------------
+\usetikzlibrary{
+  arrows.meta,
+  3d,
+  decorations.pathreplacing
+}
+
+% -----------------------------
+% COLOR DEFINITIONS
+% -----------------------------
+\colorlet{myred}{red!80!black}
+\colorlet{myblue}{blue!80!black}
+\colorlet{mygreen}{green!60!black}
+\colorlet{myorange}{orange!70!red!60!black}
+\colorlet{mydarkred}{red!30!black}
+\colorlet{mydarkblue}{blue!40!black}
+\colorlet{mydarkgreen}{green!30!black}
+
+% -----------------------------
+% GLOBAL TIKZ STYLES
+% -----------------------------
+\contourlength{1.4pt}
+\tikzset{
+    >=latex,
+    % General node style
+    node/.style={thick, circle, draw=myblue, minimum size=15, inner sep=0.5, outer sep=0.6},
+    % Specific node styles for different layers
+    node in/.style={node, draw=mygreen!30!black, fill=mygreen!25, minimum size=12},
+    node hidden/.style={node, draw=myblue!30!black, fill=myblue!20, minimum size=12},
+    node convol/.style={node, draw=myorange!30!black, fill=myorange!20, minimum size=12},
+    node out/.style={node, draw=myred!30!black, fill=myred!20, minimum size=12},
+    % Connection styles
+    connect/.style={thick, mydarkblue},
+    connect arrow/.style={-{Latex[length=4,width=3.5]}, thick, mydarkblue, shorten <=0.5, shorten >=1},
+    % Node styles for the embedded neural network diagram
+    node 1/.style={node in},
+    node 2/.style={node hidden},
+    node 3/.style={node out}
+}
+% Helper macro to map layer number to a style (1, 2, or 3)
+\def\nstyle{int(\lay<\Nnodlen?min(2,\lay):3)}
+
+% =============================================================================
+% DOCUMENT BODY
+% =============================================================================
+\begin{document}
+\begin{tikzpicture}
+
+% =============================
+% GLOBAL CONSTANTS & DIMENSIONS
+% =============================
+\def\objectspace{0.3}
+\def\margins{0.4}
+\def\globalsquarewidth{21}
+\def\globalsquareheigth{11.5}
+
+% =============================================================================
+% AUTOENCODER & EXPLANATORY MODEL SCHEMATIC (TOP PART)
+% =============================================================================
+
+% -----------------------------
+% INPUT BLOCK
+% -----------------------------
+\def\inputheight{4}
+\def\inputwidth{0.4}
+\coordinate (input_origin) at ({\margins + 0.2}, {\globalsquareheigth - \margins});
+% Draw the block container
+\draw [myblue!60, fill=myblue, fill opacity=0.02, rounded corners=3, line width=0.7mm] 
+    (input_origin) --++ (0, -\inputheight) --++ (\inputwidth, 0) --++ (0,\inputheight) -- cycle;
+% Draw inner horizontal lines
+\foreach \i in {1,...,9} {
+    \draw[myblue!30, line width=0.3mm] ($(input_origin) + (0.05, -0.4*\i)$) -- ($(input_origin) + (\inputwidth - 0.05, -0.4*\i)$);
+}
+
+% -----------------------------
+% ENCODER BLOCK
+% -----------------------------
+\def\encodingwidth{3}
+\def\latentspaceheight{1.5}
+\pgfmathsetmacro{\encodingheight}{(\inputheight - \latentspaceheight) / 2}
+\coordinate (encoding_origin) at ($(input_origin) + (\inputwidth + \objectspace, 0)$);
+% Draw the encoder shape
+\draw[myorange!60, fill=myorange, fill opacity=0.1, rounded corners=3, line width=0.6mm]
+    (encoding_origin) --++ (\encodingwidth, -\encodingheight) --++ (0, -\latentspaceheight) --++ (-\encodingwidth, -\encodingheight) -- cycle;
+
+% -----------------------------
+% LATENT SPACE BLOCK
+% -----------------------------
+\def\latentspacewidth{0.8}
+\coordinate (ls_origin) at ($(encoding_origin) + (\encodingwidth + \objectspace, -\encodingheight)$);
+% Draw the latent space rectangle
+\draw[mydarkgreen!60, fill=mydarkgreen, fill opacity=0.1, rounded corners=3, line width=0.6mm]
+    (ls_origin) rectangle ++(\latentspacewidth, -\latentspaceheight);
+
+% -----------------------------
+% DECODER BLOCK (PREDICTIVE)
+% -----------------------------
+\def\decodingwidth{\encodingwidth}
+\def\decodingheight{\encodingheight}
+\coordinate (decoding_origin) at ($(ls_origin) + (\latentspacewidth + \objectspace, 0)$);
+% Draw the decoder shape (dashed)
+\draw[myorange!60, fill=myorange, fill opacity=0.1, rounded corners=3, line width=0.6mm, dash pattern=on 10pt off 3pt,]
+    (decoding_origin) --++ (\decodingwidth, \decodingheight) --++ (0, -\inputheight) --++ (-\decodingwidth, \decodingheight) -- cycle;
+
+% -----------------------------
+% PREDICTIVE OUTPUT BLOCK
+% -----------------------------
+\def\predictiveoutputwidth{\inputheight}
+\def\predictiveoutputheight{\inputheight}
+\coordinate (predictive_output_origin) at ($(decoding_origin) + (\decodingwidth + \objectspace, \decodingheight)$);
+% Draw the grid inside the block
+\foreach \i in {1,...,9} {\draw[myblue!30, line width=0.3mm] (9, 11.1 - \i*0.4) -- (13, 11.1 - \i*0.4);}
+\foreach \j in {1,...,9} {\draw[myblue!30, line width=0.3mm] (9 + \j*0.4, 11.1) -- (9 + \j*0.4, 7.1);}
+% Draw the block container
+\draw [myblue!60,fill=myblue,fill opacity=0.02,rounded corners=2, line width=0.6mm]
+    (predictive_output_origin) --++ (\predictiveoutputwidth, 0) --++ (0, -\predictiveoutputheight) --++ (-\predictiveoutputwidth, 0) -- cycle;
+
+% -----------------------------
+% EXPLANATORY DECODER BLOCK
+% -----------------------------
+\def\explanatorywidth{\decodingwidth/2.2}
+\def\explanatoryheight{\decodingheight*1.5}
+\coordinate (explanatory_origin) at ($(predictive_output_origin) + (\predictiveoutputwidth + \objectspace, -\decodingheight - \latentspaceheight/2)$);
+% Draw the explanatory decoder shape
+\draw[myorange!60, fill=myorange, fill opacity=0.1, rounded corners=3, line width=0.6mm]
+    ($(explanatory_origin) + (0, 0.2)$) --++ (\explanatorywidth, \explanatoryheight) --++ (\explanatorywidth, -\explanatoryheight) --++ (-\explanatorywidth, -\explanatoryheight) -- cycle;
+
+% -----------------------------
+% EXPLANATORY OUTPUT BLOCK
+% -----------------------------
+\def\predictiveoutputwidth{\inputheight}
+\def\predictiveoutputheight{\inputheight}
+\coordinate (predictive_output_origin) at ($(explanatory_origin) + (\explanatorywidth*2 + \objectspace, \predictiveoutputheight/2 )$);
+% Draw the grid inside the block
+\foreach \i in {1,...,9} {\draw[myblue!30, line width=0.3mm] ($(predictive_output_origin) + (0, -\i*0.4)$) -- ($(predictive_output_origin) + (4, -\i*0.4)$);}
+\foreach \j in {1,...,9} {\draw[myblue!30, line width=0.3mm] ($(predictive_output_origin) + (\j*0.4, 0)$) -- ($(predictive_output_origin) + (\j*0.4, -4)$);}
+% Draw the block container
+\draw [myblue!60,fill=myblue,fill opacity=0.02,rounded corners=2, line width=0.6mm]
+    (predictive_output_origin) --++ (\predictiveoutputwidth, 0) --++ (0, -\predictiveoutputheight) --++ (-\predictiveoutputwidth, 0) -- cycle;
+
+% -----------------------------
+% ANNOTATIONS FOR OUTPUTS (STENCILS)
+% -----------------------------
+% Horizontal connecting lines
+\draw[black!50, very thick] (11, 9.3) -- (13.34, 9.3);
+\draw[black!50, very thick] (16.02, 9.3) -- (17.91, 9.3);
+
+% Stencil symbol for the predictive output (green)
+\draw[->, thick] (10.8, 9.5) --++ (0, 0.4);
+\draw[->, thick] (11, 9.3) --++ (0.4, 0);
+\draw[->, thick] (10.8, 9.1) --++ (0, -0.4);
+\draw[->, thick] (10.6, 9.3) --++ (-0.4, 0);
+\draw[mygreen!60,fill=mygreen,fill opacity=0.2,rounded corners=1pt, line width=0.4mm] 
+(11, 9.1) --++ (0, 0.4) --++ (-0.4, 0) --++ (0, -0.4) -- cycle;
+
+% Stencil symbol for the explanatory output (red)
+\draw[->, thick] (18.13, 9.5) --++ (0, 0.4);
+\draw[->, thick] (18.33, 9.3) --++ (0.4, 0);
+\draw[->, thick] (18.13, 9.1) --++ (0, -0.4);
+\draw[->, thick] (17.93, 9.3) --++ (-0.4, 0);
+\draw[myred!60,fill=myred,fill opacity=0.2,rounded corners=1pt, line width=0.4mm] 
+(18.33, 9.1) --++ (0, 0.4) --++ (-0.4, 0) --++ (0, -0.4) -- cycle;
+
+% =============================================================================
+% PHYSICS-INFORMED DECODING VARIANTS (BOTTOM PART)
+% =============================================================================
+
+% -----------------------------
+% OUTER DASHED FRAME
+% -----------------------------
+\pgfmathsetmacro{\outerwidth}{\globalsquarewidth - \margins}
+\pgfmathsetmacro{\outerheight}{\globalsquareheigth - \inputheight - \objectspace - \margins - 0.5}
+\pgfmathsetmacro{\lowermarginrectangle}{\margins + 1.}
+% Draw the main rectangular part of the frame
+\draw[rounded corners=15pt, line width=0.7mm, dash pattern=on 10pt off 3pt, opacity=0.3]
+    (10.1, \outerheight)
+    -- (\outerwidth, \outerheight)
+    -- (\outerwidth, \lowermarginrectangle+0.8)       
+    -- (\margins, \lowermarginrectangle+0.8)           
+    -- (\margins, \outerheight)  
+    -- (3.9, \outerheight);
+% Draw the curved top part of the frame
+\draw[line width=0.7mm, dash pattern=on 10pt off 3pt, opacity=0.3]
+    (4, \outerheight) arc[start angle=270,end angle=303,radius=5.5cm]
+    (10, \outerheight) arc[start angle=270,end angle=237,radius=5.5cm];
+
+% -----------------------------
+% INNER RECTANGULAR CONTAINERS
+% -----------------------------
+\def\numrects{3}
+\def\squaresep{0.5}
+% Calculate dimensions based on global constants
+\pgfmathsetmacro{\totalgap}{(\numrects - 1) * \squaresep}
+\pgfmathsetmacro{\rectwidth}{(\outerwidth - \totalgap - 3*\margins)/\numrects}
+\pgfmathsetmacro{\ystart}{2*\lowermarginrectangle - 0.1}
+\pgfmathsetmacro{\yend}{\outerheight - \margins}
+% Loop to draw the three containers
+\foreach \i in {0,1,2} {
+    \pgfmathsetmacro{\x}{2*\margins + \i * (\rectwidth + \squaresep)}
+    \draw[fill=blue!20, draw=blue!80, rounded corners=15, line width=0.7mm, opacity=0.5]
+        (\x, \ystart) rectangle ++(\rectwidth, \yend - \ystart);
+}
+
+% -----------------------------
+% CONTENT FOR DECODING VARIANTS
+% -----------------------------
+\foreach \i in {0,1,2} {
+    % Calculate x-position for the content inside each rectangle
+    \pgfmathsetmacro{\x}{
+        2*\margins 
+        + (\rectwidth - \encodingwidth)/2 
+        + \i * (\rectwidth + \squaresep)
+    }
+
+    % --- NOTE: Optional (a), (b), (c) labels. Currently commented out. ---
+    % \node at (\x + \encodingwidth/2, \ystart - 0.7) 
+    % {\fontsize{12}{14}\selectfont
+    %     \ifnum\i=0 (a) \else \ifnum\i=1 (b) \else \ifnum\i=2 (c) \else (d) \fi \fi \fi
+    % };
+
+    % Place content (equations or diagrams) in the center of each container
+    \node at (\x + \encodingwidth/2, \outerheight - \encodingheight - \latentspaceheight/2) 
+    {\fontsize{12}{14}\selectfont
+        % Case 1: Fourier Inverse Transform
+        \ifnum\i=0 
+            $
+                \begin{array}{c}
+                \mathcal{F}^{-1} \\[0.5em]
+                \boldsymbol{u}(\boldsymbol{r}; \mathbf{x}) = \sum_{k=0}^n u_k(\mathbf{x}) e^{2\pi i \boldsymbol{\xi}_n \cdot \boldsymbol{r}}
+                \end{array}
+            $
+        % Case 2: Proper Orthogonal Decomposition (POD)
+        \else\ifnum\i=1 
+            $
+                \begin{array}{c}
+                \mathcal{POD} \\[0.5em]
+                \boldsymbol{A} \approx \boldsymbol{A}_k = \boldsymbol{U} \boldsymbol{\Sigma}_k \boldsymbol{V}^T
+                \end{array}
+            $
+        % Case 3: Neural Network Diagram
+        \else\ifnum\i=2
+            \begin{tikzpicture}[scale=0.7]
+                \readlist\Nnod{2,3,4,4} % N_nodes per layer
+                \foreachitem \N \in \Nnod { % Loop over layers
+                    \def\lay{\Ncnt} % Current layer index
+                    \pgfmathsetmacro\prev{int(\Ncnt-1)} % Previous layer index
+                    \foreach \i [evaluate={\y=\N/2-\i+0.5; \x=\lay; \n=\nstyle;}] in {1,...,\N} { % Loop over nodes
+                        % Draw node
+                        \node[node \n, outer sep=0.6] (N\lay-\i) at (\x,\y) {};
+                        % Draw connections to previous layer
+                        \ifnum\lay>1 
+                            \foreach \j in {1,...,\Nnod[\prev]} {
+                                \draw[connect, white, line width=1.2] (N\prev-\j) -- (N\lay-\i); % White outline for clarity
+                                \draw[connect] (N\prev-\j) -- (N\lay-\i);
+                            }
+                        \fi
+                    }
+                }
+            \end{tikzpicture}
+        % Fallback case (currently unused)
+        \else 
+            $\mathcal{FFT}$ 
+        \fi\fi\fi
+    };
+}
+
+% =============================================================================
+% LABELS FOR MAIN COMPONENTS
+% =============================================================================
+\node at (0.8, 11.5) {\textbf{Input}};
+\node at (2.8, 9.1) {\textbf{Encoding}};
+\node at (7.2, 9.1) {\textbf{Decoding}};
+\node[align=center] at (5, 10.5) {\textbf{Latent} \\ \textbf{space}};
+\node at (14.7, 9.3) {\textbf{Explanatory}};
+
+\end{tikzpicture}
+\end{document}
