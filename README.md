@@ -1,4 +1,4 @@
-# Tikz-Images-TMELab
+# Tikz-Images
 
 This repository contains a collection of LaTeX/TikZ source files and generated PDF figures for various scientific and engineering visualizations used in my projects.
 
