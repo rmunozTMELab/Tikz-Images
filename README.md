@@ -35,7 +35,7 @@ The repository is organized into topic-based folders, each containing:
 
 ## Contributing
 
-You are welcome to download and use the figures in this repository, provided you give appropriate credit (mentioning me as the author, as I do for others' work where relevant).
+Feel free to download and use the figures in this repository — just make sure to give proper credit.
 
 **Please do not modify or overwrite the existing files.**
 
